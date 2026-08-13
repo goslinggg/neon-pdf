@@ -9,11 +9,13 @@ if (!app.requestSingleInstanceLock()) app.quit();
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1440, height: 920, minWidth: 900, minHeight: 620,
-    backgroundColor: '#07111f',
-    titleBarStyle: 'hidden', titleBarOverlay: { color: '#07111f', symbolColor: '#8bbfff', height: 38 },
+    backgroundColor: '#e9edf5',
+    icon: path.join(__dirname, 'build', 'icon.svg'),
+    frame: false,
     webPreferences: { nodeIntegration: true, contextIsolation: false, sandbox: false }
   });
   mainWindow.loadFile('index.html');
+  mainWindow.setMenuBarVisibility(false);
   mainWindow.webContents.once('did-finish-load', () => {
     if (pendingPdfPath) mainWindow.webContents.send('open-file', pendingPdfPath);
   });
@@ -21,6 +23,10 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  ipcMain.on('set-theme', (_, theme) => mainWindow?.setBackgroundColor(theme === 'dark' ? '#171f2c' : '#e9edf5'));
+  ipcMain.on('window-minimize', () => mainWindow?.minimize());
+  ipcMain.on('window-toggle-maximize', () => { if (!mainWindow) return; if (mainWindow.isMaximized()) mainWindow.unmaximize(); else mainWindow.maximize(); });
+  ipcMain.on('window-close', () => mainWindow?.close());
   ipcMain.handle('open-pdf', async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
       title: 'Открыть PDF', properties: ['openFile'], filters: [{ name: 'PDF', extensions: ['pdf'] }]

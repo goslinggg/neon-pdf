@@ -1,7 +1,7 @@
 {
   "name": "neon-pdf",
-  "version": "1.3.3",
-  "description": "Lightweight neon PDF viewer with pen annotations",
+  "version": "2.1.1",
+  "description": "Liquid-glass PDF viewer with pen annotations",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -19,11 +19,23 @@
     "appId": "ru.neonpdf.viewer",
     "productName": "Neon PDF",
     "directories": { "output": "release" },
-    "files": ["main.js", "index.html", "styles.css", "renderer.js", "node_modules/pdf-lib/**"],
+    "files": ["main.js", "index.html", "styles.css", "renderer.js", "build/icon.svg", "node_modules/pdf-lib/**"],
     "extraResources": [{ "from": "node_modules/pdfjs-dist/legacy/build", "to": "pdfjs" }],
     "fileAssociations": [{ "ext": "pdf", "name": "PDF document", "role": "Viewer" }],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "build/icon.svg"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "displayLanguageSelector": true,
+      "installerLanguages": ["ru_RU", "en_US"],
+      "language": "1049",
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Neon PDF",
+      "runAfterFinish": true
     }
   }
 }

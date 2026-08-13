@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Neon PDF">
+  <defs>
+    <linearGradient id="surface" x1="130" y1="82" x2="880" y2="944" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#72C4FF"/>
+      <stop offset=".39" stop-color="#198CFF"/>
+      <stop offset="1" stop-color="#2251C8"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="336" y1="194" x2="700" y2="804" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity=".98"/>
+      <stop offset="1" stop-color="#D9ECFF" stop-opacity=".91"/>
+    </linearGradient>
+    <linearGradient id="stroke" x1="440" y1="520" x2="698" y2="741" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#45AEFF"/>
+      <stop offset="1" stop-color="#046BEA"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="236" fill="url(#surface)"/>
+  <ellipse cx="306" cy="197" rx="260" ry="160" fill="#D7F1FF" fill-opacity=".48" filter="url(#soft)"/>
+  <path d="M275 259c0-54 44-98 98-98h263l114 114v490c0 54-44 98-98 98H373c-54 0-98-44-98-98V259Z" fill="url(#paper)"/>
+  <path d="M636 161v92c0 29 24 53 53 53h61" fill="#B9DEFF" fill-opacity=".92"/>
+  <path d="M414 392h211M414 474h157" stroke="#85B8E9" stroke-width="37" stroke-linecap="round"/>
+  <path d="m427 680 49-12 180-180a50 50 0 0 0-71-71L405 597l22 83Z" fill="url(#stroke)"/>
+  <path d="m552 450 71 71" stroke="#EAF7FF" stroke-width="22" stroke-linecap="round"/>
+  <path d="m427 680 16-49 33 33-49 16Z" fill="#F8FCFF"/>
+  <rect x="22" y="22" width="980" height="980" rx="218" fill="none" stroke="#FFFFFF" stroke-opacity=".35" stroke-width="20"/>
+</svg>

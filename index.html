@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,48 +7,126 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand"><span class="brand-mark">N</span><span>NEON <b>PDF</b></span></div>
-    <button id="openButton" class="primary"><span>＋</span> Открыть PDF</button>
-    <button id="saveButton" class="secondary" style="-webkit-app-region:no-drag">Сохранить</button>
-    <div id="tabs"></div>
-    <div id="documentName" class="document-name">Документ не выбран</div>
-    <div id="zoomValue" class="page-readout">100%</div>
-    <div class="page-readout"><span id="pageCurrent">—</span><i></i><span id="pageTotal">—</span></div>
-  </header>
-  <main>
-    <aside class="tools">
-      <div class="tool-label">ИНСТРУМЕНТ</div>
-      <button class="tool active" data-tool="pen" title="Перо"><span class="pen-icon">✎</span></button>
-      <button class="tool" data-tool="eraser" title="Ластик">⌫</button>
-      <button class="tool" id="undoButton" title="Отменить">↶</button>
-      <button class="tool" id="clearButton" title="Очистить страницу">⌧</button>
-      <div class="divider"></div>
-      <div class="tool-label">ЦВЕТ</div>
-      <div class="colors">
-        <button class="swatch active" data-color="#59a7ff" style="--c:#59a7ff"></button>
-        <button class="swatch" data-color="#b181ff" style="--c:#b181ff"></button>
-        <button class="swatch" data-color="#5ff0d3" style="--c:#5ff0d3"></button>
-        <button class="swatch" data-color="#ff6da9" style="--c:#ff6da9"></button>
-        <button class="swatch" data-color="#fff8d7" style="--c:#fff8d7"></button>
-        <button class="swatch" data-color="#111827" style="--c:#111827" title="Чёрный"></button>
+  <div class="liquid-orb orb-one"></div>
+  <div class="liquid-orb orb-two"></div>
+  <div class="liquid-orb orb-three"></div>
+
+  <header class="topbar no-tabs">
+    <div class="control-row">
+      <div class="brand" aria-label="Neon PDF">
+        <span class="brand-mark"><img src="build/icon.svg" alt="" /></span>
+        <span class="brand-name">Neon PDF</span>
       </div>
-      <div class="divider"></div>
-      <div class="tool-label">ТОЛЩИНА</div>
-      <input id="sizeRange" type="range" min="2" max="14" value="4" />
-      <output id="sizeValue">4 px</output>
-    </aside>
+
+      <nav class="app-menu" aria-label="Меню приложения">
+        <div class="menu-group">
+          <button id="fileMenuButton" class="menu-button" type="button" aria-expanded="false" data-i18n="file">Файл</button>
+          <div id="fileMenu" class="glass-popover file-menu" role="menu">
+            <button id="openButton" class="menu-action" type="button" role="menuitem"><span data-i18n="openPdf">Открыть PDF</span><kbd>Ctrl O</kbd></button>
+            <button id="saveButton" class="menu-action" type="button" role="menuitem" disabled><span data-i18n="saveFile">Сохранить файл</span><kbd>Ctrl S</kbd></button>
+          </div>
+        </div>
+
+        <div class="menu-group drawing-menu-group">
+          <button id="drawingMenuButton" class="menu-button" type="button" aria-expanded="false" data-i18n="drawing">Рисование</button>
+          <div id="drawingPanel" class="glass-popover drawing-panel" aria-label="Инструменты рисования" data-i18n-aria="drawingTools">
+            <div class="drawing-section">
+              <div class="mode-switch" role="group" aria-label="Инструмент рисования" data-i18n-aria="drawingMode">
+                <button class="mode-button active" data-tool="pen" type="button" data-i18n="pen">Перо</button>
+                <button class="mode-button" data-tool="highlighter" type="button" data-i18n="highlighter">Выделитель</button>
+                <button class="mode-button" data-tool="eraser" type="button" data-i18n="eraser">Ластик</button>
+              </div>
+            </div>
+
+            <div id="colorSection" class="drawing-section">
+              <span class="panel-label" data-i18n="color">Цвет</span>
+              <div id="penColors" class="colors" role="group" aria-label="Цвет пера" data-i18n-aria="penColor">
+                <button class="swatch active" data-color="#1677ff" style="--c:#1677ff" title="Синий" data-i18n-title="blue"></button>
+                <button class="swatch" data-color="#8055e9" style="--c:#8055e9" title="Фиолетовый" data-i18n-title="purple"></button>
+                <button class="swatch" data-color="#12a594" style="--c:#12a594" title="Бирюзовый" data-i18n-title="teal"></button>
+                <button class="swatch" data-color="#e94873" style="--c:#e94873" title="Розовый" data-i18n-title="pink"></button>
+                <button class="swatch" data-color="#e6a128" style="--c:#e6a128" title="Оранжевый" data-i18n-title="orange"></button>
+                <button class="swatch" data-color="#111827" style="--c:#111827" title="Чёрный" data-i18n-title="black"></button>
+              </div>
+              <div id="highlighterColors" class="colors highlighter-colors" role="group" aria-label="Цвет выделителя" data-i18n-aria="highlighterColor">
+                <button class="swatch active" data-color="#fbe888" style="--c:#fbe888" title="Нежный жёлтый" data-i18n-title="softYellow"></button>
+                <button class="swatch" data-color="#bff2cb" style="--c:#bff2cb" title="Нежный зелёный" data-i18n-title="softGreen"></button>
+                <button class="swatch" data-color="#bfe7ff" style="--c:#bfe7ff" title="Нежный голубой" data-i18n-title="softBlue"></button>
+                <button class="swatch" data-color="#e5d2ff" style="--c:#e5d2ff" title="Нежный лиловый" data-i18n-title="softLilac"></button>
+                <button class="swatch" data-color="#ffcfe0" style="--c:#ffcfe0" title="Нежный розовый" data-i18n-title="softPink"></button>
+                <button class="swatch" data-color="#ffdcb8" style="--c:#ffdcb8" title="Нежный персиковый" data-i18n-title="softPeach"></button>
+              </div>
+            </div>
+
+            <div id="thicknessSection" class="drawing-section thickness-control">
+              <div class="thickness-head"><span class="panel-label" data-i18n="thickness">Толщина</span><output id="sizeValue">3 px</output></div>
+              <input id="sizeRange" type="range" min="2" max="14" value="3" aria-label="Толщина пера" data-i18n-aria="thickness" />
+            </div>
+
+            <div class="drawing-actions">
+              <button class="panel-action" id="undoButton" type="button" title="Отменить" data-i18n-title="undo" aria-label="Отменить" data-i18n-aria="undo">
+                <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7 4 12l5.2 5"/><path d="M4.5 12h8.2a6.8 6.8 0 1 1 0 13.6"/></svg><span data-i18n="undo">Отменить</span>
+              </button>
+              <button class="panel-action" id="clearButton" type="button" title="Очистить страницу" data-i18n-title="clear" aria-label="Очистить страницу" data-i18n-aria="clear">
+                <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14"/><path d="M9 7V4.5h6V7"/><path d="M7.5 7 8.2 20h7.6l.7-13"/><path d="M10.5 10.5v6"/><path d="M13.5 10.5v6"/></svg><span data-i18n="clear">Очистить страницу</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button id="settingsButton" class="menu-button" type="button" data-i18n="settings">Настройки</button>
+      </nav>
+
+      <div id="zoomControls" class="zoom-controls is-disabled" aria-label="Масштаб" data-i18n-aria="zoom">
+        <button id="zoomOut" class="zoom-button" type="button" aria-label="Уменьшить масштаб" data-i18n-aria="zoomOut" disabled>−</button>
+        <button id="zoomReset" class="zoom-readout" type="button" aria-label="Сбросить масштаб" data-i18n-aria="resetZoom" disabled><span id="zoomValue">100%</span></button>
+        <button id="zoomIn" class="zoom-button" type="button" aria-label="Увеличить масштаб" data-i18n-aria="zoomIn" disabled>+</button>
+      </div>
+
+      <div class="window-controls" aria-label="Управление окном" data-i18n-aria="windowControls">
+        <button id="minimizeButton" class="window-control" type="button" aria-label="Свернуть" data-i18n-aria="minimize"><span>—</span></button>
+        <button id="maximizeButton" class="window-control" type="button" aria-label="Развернуть" data-i18n-aria="maximize"><span>□</span></button>
+        <button id="closeWindowButton" class="window-control window-close" type="button" aria-label="Закрыть" data-i18n-aria="close"><span>×</span></button>
+      </div>
+    </div>
+
+    <div id="tabBar" class="tab-bar is-empty">
+      <div id="tabs" class="document-tabs" aria-label="Открытые документы" data-i18n-aria="openDocuments"></div>
+    </div>
+  </header>
+
+  <main>
     <section id="viewer" class="viewer">
       <div id="emptyState" class="empty-state">
-        <div class="orb"><span>⌁</span></div>
-        <h1>Ваш PDF — в фокусе</h1>
-        <p>Откройте файл, чтобы читать и делать пометки стилусом.</p>
-        <button id="emptyOpenButton" class="primary">Выбрать PDF</button>
-        <small>Круги, квадраты, треугольники и линии аккуратно распознаются автоматически.</small>
+        <div class="empty-card liquid-card">
+          <div class="empty-icon"><img src="build/icon.svg" alt="" /></div>
+          <h1 data-i18n="emptyTitle">Ваш PDF — в фокусе</h1>
+          <p data-i18n="emptyText">Откройте файл, чтобы читать, выделять важное и делать пометки стилусом.</p>
+          <button id="emptyOpenButton" class="button button-primary" type="button" data-i18n="choosePdf">Выбрать PDF</button>
+          <small data-i18n="emptyHint">Удерживайте перо две секунды после рисунка, чтобы превратить линию, круг или квадрат в аккуратную фигуру.</small>
+        </div>
       </div>
       <div id="pages" class="pages"></div>
     </section>
   </main>
+
+  <div id="settingsModal" class="modal-backdrop" aria-hidden="true">
+    <section class="settings-sheet liquid-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="settings-head">
+        <div><p class="eyebrow" data-i18n="preferences">Предпочтения</p><h2 id="settingsTitle" data-i18n="settings">Настройки</h2></div>
+        <button id="closeSettingsButton" class="round-close" type="button" aria-label="Закрыть" data-i18n-aria="close">×</button>
+      </div>
+      <div class="settings-row">
+        <div><strong data-i18n="theme">Тема</strong><span data-i18n="themeHint">Выберите оформление приложения</span></div>
+        <div class="settings-segment" role="group" aria-label="Тема" data-i18n-aria="theme"><button class="settings-choice" type="button" data-theme-choice="light" data-i18n="light">Светлая</button><button class="settings-choice" type="button" data-theme-choice="dark" data-i18n="dark">Тёмная</button></div>
+      </div>
+      <div class="settings-row">
+        <div><strong data-i18n="language">Язык</strong><span data-i18n="languageHint">Язык интерфейса</span></div>
+        <div class="settings-segment" role="group" aria-label="Язык" data-i18n-aria="language"><button class="settings-choice" type="button" data-language-choice="ru">Русский</button><button class="settings-choice" type="button" data-language-choice="en">English</button></div>
+      </div>
+    </section>
+  </div>
+
   <div id="toast" class="toast"></div>
   <script src="renderer.js"></script>
 </body>
