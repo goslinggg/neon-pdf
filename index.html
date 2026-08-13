@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon PDF</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">N</span><span>NEON <b>PDF</b></span></div>
+    <button id="openButton" class="primary"><span>＋</span> Открыть PDF</button>
+    <button id="saveButton" class="secondary" style="-webkit-app-region:no-drag">Сохранить</button>
+    <div id="tabs"></div>
+    <div id="documentName" class="document-name">Документ не выбран</div>
+    <div id="zoomValue" class="page-readout">100%</div>
+    <div class="page-readout"><span id="pageCurrent">—</span><i></i><span id="pageTotal">—</span></div>
+  </header>
+  <main>
+    <aside class="tools">
+      <div class="tool-label">ИНСТРУМЕНТ</div>
+      <button class="tool active" data-tool="pen" title="Перо"><span class="pen-icon">✎</span></button>
+      <button class="tool" data-tool="eraser" title="Ластик">⌫</button>
+      <button class="tool" id="undoButton" title="Отменить">↶</button>
+      <button class="tool" id="clearButton" title="Очистить страницу">⌧</button>
+      <div class="divider"></div>
+      <div class="tool-label">ЦВЕТ</div>
+      <div class="colors">
+        <button class="swatch active" data-color="#59a7ff" style="--c:#59a7ff"></button>
+        <button class="swatch" data-color="#b181ff" style="--c:#b181ff"></button>
+        <button class="swatch" data-color="#5ff0d3" style="--c:#5ff0d3"></button>
+        <button class="swatch" data-color="#ff6da9" style="--c:#ff6da9"></button>
+        <button class="swatch" data-color="#fff8d7" style="--c:#fff8d7"></button>
+        <button class="swatch" data-color="#111827" style="--c:#111827" title="Чёрный"></button>
+      </div>
+      <div class="divider"></div>
+      <div class="tool-label">ТОЛЩИНА</div>
+      <input id="sizeRange" type="range" min="2" max="14" value="4" />
+      <output id="sizeValue">4 px</output>
+    </aside>
+    <section id="viewer" class="viewer">
+      <div id="emptyState" class="empty-state">
+        <div class="orb"><span>⌁</span></div>
+        <h1>Ваш PDF — в фокусе</h1>
+        <p>Откройте файл, чтобы читать и делать пометки стилусом.</p>
+        <button id="emptyOpenButton" class="primary">Выбрать PDF</button>
+        <small>Круги, квадраты, треугольники и линии аккуратно распознаются автоматически.</small>
+      </div>
+      <div id="pages" class="pages"></div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="renderer.js"></script>
+</body>
+</html>
