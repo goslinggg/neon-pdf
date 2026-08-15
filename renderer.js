@@ -21,6 +21,7 @@ let sourcePath;
 let activeDocument;
 let documentId = 0;
 let virtualUpdateQueued = false;
+let scrollPageBadgeTimer;
 const documents = [];
 
 const translations = {
@@ -28,23 +29,23 @@ const translations = {
     file: 'Файл', drawing: 'Рисование', settings: 'Настройки', openPdf: 'Открыть PDF', saveFile: 'Сохранить файл',
     pen: 'Перо', highlighter: 'Выделитель', eraser: 'Ластик', undo: 'Отменить', clear: 'Очистить страницу',
     color: 'Цвет', penColor: 'Цвет пера', highlighterColor: 'Цвет выделителя', drawingMode: 'Инструмент рисования', drawingTools: 'Инструменты рисования', blue: 'Синий', purple: 'Фиолетовый', teal: 'Бирюзовый', pink: 'Розовый', orange: 'Оранжевый', black: 'Чёрный', softYellow: 'Нежный жёлтый', softGreen: 'Нежный зелёный', softBlue: 'Нежный голубой', softLilac: 'Нежный лиловый', softPink: 'Нежный розовый', softPeach: 'Нежный персиковый', thickness: 'Толщина',
-    openDocuments: 'Открытые документы', noDocument: 'Документ не выбран', zoom: 'Масштаб', zoomOut: 'Уменьшить масштаб', zoomIn: 'Увеличить масштаб', resetZoom: 'Сбросить масштаб',
+    openDocuments: 'Открытые документы', noDocument: 'Документ не выбран', pagePosition: 'Текущая страница', zoom: 'Масштаб', zoomOut: 'Уменьшить масштаб', zoomIn: 'Увеличить масштаб', resetZoom: 'Сбросить масштаб',
     emptyTitle: 'Ваш PDF — в фокусе', emptyText: 'Откройте файл, чтобы читать, выделять важное и делать пометки стилусом.', choosePdf: 'Выбрать PDF',
-    emptyHint: 'Удерживайте перо две секунды после рисунка, чтобы превратить линию, круг или квадрат в аккуратную фигуру.',
+    emptyHint: 'Удерживайте перо 1,2 секунды после рисунка, чтобы превратить линию, круг или квадрат в аккуратную фигуру.',
     preferences: 'Предпочтения', theme: 'Тема', themeHint: 'Выберите оформление приложения', light: 'Светлая', dark: 'Тёмная', language: 'Язык', languageHint: 'Язык интерфейса', close: 'Закрыть', minimize: 'Свернуть', maximize: 'Развернуть', windowControls: 'Управление окном',
     opened: 'Открыт файл: {name}', openFailed: 'Не удалось открыть PDF', openFirst: 'Сначала откройте PDF', saved: 'Сохранено: {path}', cleared: 'Пометки на странице очищены',
-    recognizedLine: 'Линия распознана — не отпуская перо, поверните её', recognizedShape: 'Фигура распознана — не отпуская перо, измените размер',
+    recognizedLine: 'Линия распознана — не отпуская перо, поверните её или измените длину', recognizedShape: 'Фигура распознана — не отпуская перо, измените размер',
     pageLoading: 'Страница загружается…', pageUnavailable: 'Не удалось отрисовать страницу', pageReleased: 'Страница выгружена для экономии памяти', closeDocument: 'Закрыть {name}'
   },
   en: {
     file: 'File', drawing: 'Drawing', settings: 'Settings', openPdf: 'Open PDF', saveFile: 'Save file',
     pen: 'Pen', highlighter: 'Highlighter', eraser: 'Eraser', undo: 'Undo', clear: 'Clear page', color: 'Color', penColor: 'Pen color', highlighterColor: 'Highlighter color', drawingMode: 'Drawing tool', drawingTools: 'Drawing tools', blue: 'Blue', purple: 'Purple', teal: 'Teal', pink: 'Pink', orange: 'Orange', black: 'Black', softYellow: 'Soft yellow', softGreen: 'Soft green', softBlue: 'Soft blue', softLilac: 'Soft lilac', softPink: 'Soft pink', softPeach: 'Soft peach', thickness: 'Thickness',
-    openDocuments: 'Open documents', noDocument: 'No document selected', zoom: 'Zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in', resetZoom: 'Reset zoom',
+    openDocuments: 'Open documents', noDocument: 'No document selected', pagePosition: 'Current page', zoom: 'Zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in', resetZoom: 'Reset zoom',
     emptyTitle: 'Your PDF, in focus', emptyText: 'Open a file to read, highlight important details, and annotate it with your stylus.', choosePdf: 'Choose PDF',
-    emptyHint: 'Hold the pen for two seconds after drawing to turn a line, circle, or square into a clean shape.',
+    emptyHint: 'Hold the pen for 1.2 seconds after drawing to turn a line, circle, or square into a clean shape.',
     preferences: 'Preferences', theme: 'Appearance', themeHint: 'Choose how the app looks', light: 'Light', dark: 'Dark', language: 'Language', languageHint: 'Interface language', close: 'Close', minimize: 'Minimize', maximize: 'Maximize', windowControls: 'Window controls',
     opened: 'Opened: {name}', openFailed: 'Could not open the PDF', openFirst: 'Open a PDF first', saved: 'Saved: {path}', cleared: 'Page annotations cleared',
-    recognizedLine: 'Line recognized — keep holding to rotate it', recognizedShape: 'Shape recognized — keep holding to resize it',
+    recognizedLine: 'Line recognized — keep holding to rotate or resize it', recognizedShape: 'Shape recognized — keep holding to resize it',
     pageLoading: 'Loading page…', pageUnavailable: 'Could not render the page', pageReleased: 'Page unloaded to save memory', closeDocument: 'Close {name}'
   }
 };
@@ -84,7 +85,22 @@ function setRangeProgress() {
 function updateZoomAvailability() {
   const enabled = Boolean(activeDocument);
   $('#zoomControls').classList.toggle('is-disabled', !enabled);
+  $('#pageReadout').classList.toggle('is-disabled', !enabled);
   ['#zoomIn', '#zoomOut', '#zoomReset', '#saveButton'].forEach(selector => { $(selector).disabled = !enabled; });
+}
+
+function updatePageDisplay({ showOnScrollbar = false } = {}) {
+  if (!activeDocument) return;
+  const total = activeDocument.pdf?.numPages || 1;
+  const current = Math.min(total, Math.max(1, activePage || activeDocument.activePage || 1));
+  activePage = current;
+  activeDocument.activePage = current;
+  $('#pageValue').textContent = `${current} / ${total}`;
+  $('#scrollPageBadge').textContent = String(current);
+  if (!showOnScrollbar) return;
+  viewer.classList.add('is-page-scrolling');
+  clearTimeout(scrollPageBadgeTimer);
+  scrollPageBadgeTimer = setTimeout(() => viewer.classList.remove('is-page-scrolling'), 850);
 }
 
 function setZoom(nextZoom) {
@@ -139,7 +155,7 @@ function simplified(points, epsilon = 11) { if (points.length < 3) return points
 function recognize(points) {
   if (points.length < 7) return null;
   const box = pointsBox(points); const first = points[0]; const last = points.at(-1); const closed = dist(first, last) < Math.max(18, Math.min(box.w, box.h) * .24);
-  if (!closed && dist(first, last) > 45 && box.w + box.h > 60) return 'line';
+  if (!closed && isStraightStroke(points)) return 'line';
   if (!closed || box.w < 22 || box.h < 22) return null;
   let simple = simplified(points.slice(0, -1)).filter((point, index, list) => index === 0 || dist(point, list[index - 1]) > 5);
   if (simple.length > 2 && dist(simple[0], simple.at(-1)) < 20) simple = simple.slice(0, -1);
@@ -149,22 +165,44 @@ function recognize(points) {
   const variation = Math.sqrt(radii.reduce((sum, value) => sum + (value - average) ** 2, 0) / radii.length) / average;
   return variation < .22 && ratio > .68 && ratio < 1.45 ? 'circle' : null;
 }
+function isStraightStroke(points) {
+  if (points.length < 5) return false;
+  const start = points[0]; const end = points.at(-1); const length = dist(start, end);
+  if (length < 38) return false;
+  const maxDeviation = Math.max(...points.map(point => pointSegmentDistance(point, start, end)));
+  return maxDeviation <= Math.max(4.5, length * .055);
+}
 function angleFrom(pivot, point) { return Math.atan2(point.y - pivot.y, point.x - pivot.x); }
 function normalizedAngle(angle) { while (angle > Math.PI) angle -= Math.PI * 2; while (angle < -Math.PI) angle += Math.PI * 2; return angle; }
 function makeShape(type, points) { const box = pointsBox(points); const last = points.at(-1); if (type === 'line') { const pivot = points[0]; return { type, pivot, length: dist(pivot, last), baseAngle: angleFrom(pivot, last), rotation: 0 }; } if (type === 'circle') { const pivot = { x: box.x + box.w / 2, y: box.y + box.h / 2 }; const rx = Math.max(11, box.w / 2); const ry = Math.max(11, box.h / 2); return { type, pivot, rx, ry, baseRx: rx, baseRy: ry, startRadius: Math.max(1, dist(pivot, last)) }; } const side = Math.max(22, box.w, box.h); return { type: 'square', pivot: { x: box.x, y: box.y + box.h }, side, xSign: 1, ySign: -1 }; }
 function drawShape(context, shape) { inkStyle(context); context.save(); context.translate(shape.pivot.x, shape.pivot.y); context.beginPath(); if (shape.type === 'line') { context.rotate(shape.baseAngle + shape.rotation); context.moveTo(0, 0); context.lineTo(shape.length, 0); } else if (shape.type === 'circle') context.ellipse(0, 0, shape.rx, shape.ry, 0, 0, Math.PI * 2); else context.rect(0, shape.ySign < 0 ? -shape.side : 0, shape.xSign * shape.side, shape.side); context.stroke(); context.restore(); }
+function drawFreeStroke(context, strokePoints) {
+  if (strokePoints.length < 2) return;
+  inkStyle(context);
+  for (let index = 1; index < strokePoints.length; index++) {
+    const previous = strokePoints[index - 1]; const next = strokePoints[index];
+    context.lineWidth = tool === 'highlighter' ? Math.max(13, size * 4) : size * (.86 + Math.min(.24, next.pressure * .24));
+    context.beginPath(); context.moveTo(previous.x, previous.y); context.lineTo(next.x, next.y); context.stroke();
+  }
+}
+function drawAssistedLine(context, start, end, pressure) {
+  inkStyle(context);
+  context.lineWidth = size * (.9 + Math.min(.18, pressure * .18));
+  context.beginPath(); context.moveTo(start.x, start.y); context.lineTo(end.x, end.y); context.stroke();
+}
 
 function setupInk(canvas, index) {
   canvas.style.cursor = 'none';
   const context = canvas.getContext('2d');
-  let drawing = false; let points = []; let holdTimer; let editableShape; let before; let lastMotion; let filteredPoint; let lastRawPoint;
+  let drawing = false; let points = []; let holdTimer; let editableShape; let before; let lastMotion; let filteredPoint; let lastRawPoint; let lineAssist = false; let assistedEnd;
   const point = event => { const rect = canvas.getBoundingClientRect(); return { x: (event.clientX - rect.left) * canvas.width / rect.width, y: (event.clientY - rect.top) * canvas.height / rect.height, pressure: event.pressure || .5 }; };
   const restore = () => { if (before) context.putImageData(before, 0, 0); };
-  const armRecognition = () => { clearTimeout(holdTimer); if (!drawing || tool !== 'pen' || editableShape) return; holdTimer = setTimeout(() => { const type = recognize(points); if (!type) return; editableShape = makeShape(type, points); editableShape.lastPointerAngle = angleFrom(editableShape.pivot, points.at(-1)); restore(); drawShape(context, editableShape); toast(t(editableShape.type === 'line' ? 'recognizedLine' : 'recognizedShape')); }, 2000); };
-  const editShape = nextPoint => { if (editableShape.type === 'line') { const currentAngle = angleFrom(editableShape.pivot, nextPoint); editableShape.rotation += normalizedAngle(currentAngle - editableShape.lastPointerAngle); editableShape.lastPointerAngle = currentAngle; } else if (editableShape.type === 'circle') { const scale = Math.max(.15, dist(editableShape.pivot, nextPoint) / editableShape.startRadius); editableShape.rx = Math.max(11, editableShape.baseRx * scale); editableShape.ry = Math.max(11, editableShape.baseRy * scale); } else { const dx = nextPoint.x - editableShape.pivot.x; const dy = nextPoint.y - editableShape.pivot.y; editableShape.side = Math.max(18, Math.abs(dx), Math.abs(dy)); if (Math.abs(dx) > 2) editableShape.xSign = Math.sign(dx); if (Math.abs(dy) > 2) editableShape.ySign = Math.sign(dy); } restore(); drawShape(context, editableShape); };
-  canvas.addEventListener('pointerdown', event => { drawing = true; canvas.setPointerCapture(event.pointerId); pushHistory(canvas); before = history.get(canvas).undo.at(-1); activePage = index; if (tool === 'eraser') { eraseAt(event); return; } points = [point(event)]; lastMotion = points[0]; filteredPoint = points[0]; lastRawPoint = points[0]; inkStyle(context); context.beginPath(); context.moveTo(points[0].x, points[0].y); });
-  canvas.addEventListener('pointermove', event => { showBrushCursor(event); if (!drawing) return; if (tool === 'eraser') { eraseAt(event); return; } const raw = point(event); if (editableShape) { editShape(raw); return; } if (dist(raw, lastRawPoint) < 1.2) return; lastRawPoint = raw; const nextPoint = { x: filteredPoint.x + (raw.x - filteredPoint.x) * .38, y: filteredPoint.y + (raw.y - filteredPoint.y) * .38, pressure: filteredPoint.pressure + (raw.pressure - filteredPoint.pressure) * .3 }; filteredPoint = nextPoint; const previous = points.at(-1); points.push(nextPoint); inkStyle(context); context.lineWidth = tool === 'highlighter' ? Math.max(13, size * 4) : size * (.86 + Math.min(.24, nextPoint.pressure * .24)); context.beginPath(); context.moveTo(previous.x, previous.y); context.lineTo(nextPoint.x, nextPoint.y); context.stroke(); if (tool === 'pen' && dist(nextPoint, lastMotion) > 7) { lastMotion = nextPoint; armRecognition(); } });
-  canvas.addEventListener('pointerup', () => { if (!drawing) return; clearTimeout(holdTimer); drawing = false; canvas.closest('.pdf-page').dataset.hasInk = 'true'; editableShape = null; before = null; });
+  const armRecognition = () => { clearTimeout(holdTimer); if (!drawing || tool !== 'pen' || editableShape) return; holdTimer = setTimeout(() => { const type = recognize(points); if (!type) return; editableShape = makeShape(type, points); restore(); drawShape(context, editableShape); toast(t(editableShape.type === 'line' ? 'recognizedLine' : 'recognizedShape')); }, 1200); };
+  const editShape = nextPoint => { if (editableShape.type === 'line') { const targetAngle = angleFrom(editableShape.pivot, nextPoint); const currentAngle = editableShape.baseAngle + editableShape.rotation; editableShape.rotation += normalizedAngle(targetAngle - currentAngle) * .46; const targetLength = Math.max(14, dist(editableShape.pivot, nextPoint)); editableShape.length += (targetLength - editableShape.length) * .46; } else if (editableShape.type === 'circle') { const scale = Math.max(.15, dist(editableShape.pivot, nextPoint) / editableShape.startRadius); editableShape.rx = Math.max(11, editableShape.baseRx * scale); editableShape.ry = Math.max(11, editableShape.baseRy * scale); } else { const dx = nextPoint.x - editableShape.pivot.x; const dy = nextPoint.y - editableShape.pivot.y; editableShape.side = Math.max(18, Math.abs(dx), Math.abs(dy)); if (Math.abs(dx) > 2) editableShape.xSign = Math.sign(dx); if (Math.abs(dy) > 2) editableShape.ySign = Math.sign(dy); } restore(); drawShape(context, editableShape); };
+  const redrawFreeStroke = () => { restore(); drawFreeStroke(context, points); };
+  canvas.addEventListener('pointerdown', event => { drawing = true; canvas.setPointerCapture(event.pointerId); pushHistory(canvas); before = history.get(canvas).undo.at(-1); activePage = index; updatePageDisplay(); if (tool === 'eraser') { eraseAt(event); return; } points = [point(event)]; lastMotion = points[0]; filteredPoint = points[0]; lastRawPoint = points[0]; lineAssist = false; assistedEnd = null; inkStyle(context); context.beginPath(); context.moveTo(points[0].x, points[0].y); });
+  canvas.addEventListener('pointermove', event => { showBrushCursor(event); if (!drawing) return; if (tool === 'eraser') { eraseAt(event); return; } const raw = point(event); if (editableShape) { editShape(raw); return; } if (dist(raw, lastRawPoint) < 1.2) return; lastRawPoint = raw; const nextPoint = { x: filteredPoint.x + (raw.x - filteredPoint.x) * .38, y: filteredPoint.y + (raw.y - filteredPoint.y) * .38, pressure: filteredPoint.pressure + (raw.pressure - filteredPoint.pressure) * .3 }; filteredPoint = nextPoint; const previous = points.at(-1); points.push(nextPoint); if (tool === 'pen' && (lineAssist || isStraightStroke(points))) { if (!isStraightStroke(points)) { lineAssist = false; assistedEnd = null; redrawFreeStroke(); } else { lineAssist = true; const priorEnd = assistedEnd || nextPoint; assistedEnd = { x: priorEnd.x + (nextPoint.x - priorEnd.x) * .52, y: priorEnd.y + (nextPoint.y - priorEnd.y) * .52, pressure: priorEnd.pressure + (nextPoint.pressure - priorEnd.pressure) * .52 }; restore(); drawAssistedLine(context, points[0], assistedEnd, assistedEnd.pressure); } } else { inkStyle(context); context.lineWidth = tool === 'highlighter' ? Math.max(13, size * 4) : size * (.86 + Math.min(.24, nextPoint.pressure * .24)); context.beginPath(); context.moveTo(previous.x, previous.y); context.lineTo(nextPoint.x, nextPoint.y); context.stroke(); } if (tool === 'pen' && dist(nextPoint, lastMotion) > 7) { lastMotion = nextPoint; armRecognition(); } });
+  canvas.addEventListener('pointerup', () => { if (!drawing) return; clearTimeout(holdTimer); drawing = false; canvas.closest('.pdf-page').dataset.hasInk = 'true'; editableShape = null; before = null; lineAssist = false; assistedEnd = null; });
   canvas.addEventListener('pointerenter', showBrushCursor); canvas.addEventListener('pointerleave', hideBrushCursor);
   function eraseAt(event) { const current = point(event); context.save(); context.globalAlpha = 1; context.globalCompositeOperation = 'destination-out'; context.beginPath(); context.arc(current.x, current.y, Math.max(18, size * 4), 0, Math.PI * 2); context.fill(); context.restore(); }
 }
@@ -184,11 +222,11 @@ function renderTabs() {
 function activateDocument(documentItem) {
   if (activeDocument) activeDocument.scrollTop = viewer.scrollTop;
   documents.forEach(item => { item.pagesElement.style.display = 'none'; if (item !== documentItem) item.slots?.forEach(releasePage); });
-  activeDocument = documentItem; pages = documentItem.pagesElement; pages.style.display = 'flex'; pdfDocument = documentItem.pdf; sourcePath = documentItem.path; history = documentItem.history; zoom = documentItem.zoom || 1; setZoom(zoom); viewer.scrollTop = documentItem.scrollTop || 0; renderTabs(); updateZoomAvailability(); setTimeout(updateVisiblePages, 0);
+  activeDocument = documentItem; pages = documentItem.pagesElement; pages.style.display = 'flex'; pdfDocument = documentItem.pdf; sourcePath = documentItem.path; history = documentItem.history; activePage = documentItem.activePage || 1; zoom = documentItem.zoom || 1; setZoom(zoom); viewer.scrollTop = documentItem.scrollTop || 0; renderTabs(); updateZoomAvailability(); updatePageDisplay(); setTimeout(updateVisiblePages, 0);
 }
 function closeDocument(documentItem) {
   const index = documents.indexOf(documentItem); if (index < 0) return; documents.splice(index, 1);
-  if (!documents.length) { activeDocument = null; pages = documentItem.pagesElement; pages.replaceChildren(); pages.style.display = 'flex'; $('#emptyState').style.display = 'grid'; tabs.replaceChildren(); renderTabs(); updateZoomAvailability(); return; }
+  if (!documents.length) { activeDocument = null; activePage = 0; pages = documentItem.pagesElement; pages.replaceChildren(); pages.style.display = 'flex'; $('#emptyState').style.display = 'grid'; tabs.replaceChildren(); renderTabs(); updateZoomAvailability(); viewer.classList.remove('is-page-scrolling'); return; }
   documentItem.pagesElement.remove(); activateDocument(documents[Math.max(0, index - 1)]);
 }
 async function loadPdf(filePath, name) {
@@ -247,7 +285,7 @@ $('#clearButton').addEventListener('click', () => { const canvas = pages.querySe
 document.querySelectorAll('[data-theme-choice]').forEach(button => button.addEventListener('click', () => { preferences.theme = button.dataset.themeChoice; savePreferences(); applyPreferences(); }));
 document.querySelectorAll('[data-language-choice]').forEach(button => button.addEventListener('click', () => { preferences.language = button.dataset.languageChoice; savePreferences(); applyPreferences(); }));
 
-viewer.addEventListener('scroll', () => { if (activeDocument) activeDocument.scrollTop = viewer.scrollTop; const items = [...pages.querySelectorAll('.pdf-page')]; const center = viewer.scrollTop + viewer.clientHeight / 2; const found = items.findIndex(page => page.offsetTop <= center && page.offsetTop + page.offsetHeight >= center); if (found >= 0) { activePage = found + 1; if (activeDocument) activeDocument.activePage = activePage; } queueVirtualPages(); });
+viewer.addEventListener('scroll', () => { if (activeDocument) activeDocument.scrollTop = viewer.scrollTop; const items = [...pages.querySelectorAll('.pdf-page')]; const center = viewer.scrollTop + viewer.clientHeight / 2; const found = items.findIndex(page => page.offsetTop <= center && page.offsetTop + page.offsetHeight >= center); if (found >= 0) { activePage = found + 1; updatePageDisplay({ showOnScrollbar: true }); } queueVirtualPages(); });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') { closeAllPopovers(); if ($('#settingsModal').classList.contains('is-open')) $('#closeSettingsButton').click(); }
   if (!event.ctrlKey) return;

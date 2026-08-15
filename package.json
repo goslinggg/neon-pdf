@@ -1,6 +1,6 @@
 {
   "name": "neon-pdf",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Liquid-glass PDF viewer with pen annotations",
   "main": "main.js",
   "scripts": {
